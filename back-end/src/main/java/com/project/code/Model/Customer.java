@@ -1,6 +1,5 @@
 package com.project.code.Model;
 
-
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -25,7 +24,7 @@ public class Customer {
 
     @OneToMany(mappedBy = "customer", fetch = FetchType.EAGER)
     @JsonManagedReference
-    private List<OrderItem> orders;
+    private List<OrderDetails> orders;
 
     public long getId() {
         return id;
