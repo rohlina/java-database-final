@@ -19,25 +19,25 @@ public class ServiceClass {
         this.productRepository = productRepository;
     }
 
-    private boolean validateInventory(Inventory inventory) {
+    public boolean validateInventory(Inventory inventory) {
 
         Inventory inv = inventoryRepository.findByProductIdandStoreId(inventory.getProduct().getId(),inventory.getStore().getId());
         return inv == null;
     }
 
-    private boolean validateProduct(Product product) {
+    public boolean validateProduct(Product product) {
 
         Product p = productRepository.findByName(product.getName());
         return p == null;
     }
 
-    private boolean validateProductId(long id) {
+    public boolean validateProductId(long id) {
 
         Product p = productRepository.findById(id);
         return p == null;
     }
 
-    private Inventory getInventoryId(Inventory inventory) {
+    public Inventory getInventoryId(Inventory inventory) {
 
         return inventoryRepository.findByProductIdandStoreId(inventory.getProduct().getId(),inventory.getStore().getId());
     }
