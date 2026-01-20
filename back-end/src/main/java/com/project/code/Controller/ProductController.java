@@ -25,15 +25,15 @@ public class ProductController {
     private ServiceClass serviceClass = new ServiceClass(inventoryRepository,productRepository);
 
     @PostMapping
-    public Map<String, String> addProduct (Product product) {
+    public Map<String, String> addProduct (CombinedRequest combinedRequest) {
         Map<String, String> message = new HashMap<String, String>();
 
-        if(serviceClass.validateProduct(product)) {
+        if(serviceClass.validateProduct(combinedRequest.getProduct())) {
             message.put("message", "No data available");
         }
 
         try {
-            productRepository.save(product);
+            productRepository.save(combinedRequest.getProduct());
             message.put("message", "Product updated successfully");
         } catch (DataIntegrityViolationException e) {
             message.put("message", e.getMessage());
