@@ -2,7 +2,7 @@ package com.project.code.Model;
 
 
 public class PurchaseProductDTO {
-    private Long id;
+    private long id;
     private String name;
     private Double price;
     private Integer quantity;
@@ -10,11 +10,11 @@ public class PurchaseProductDTO {
 
     // Getters and Setters
 
-    public Long getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(long id) {
         this.id = id;
     }
 

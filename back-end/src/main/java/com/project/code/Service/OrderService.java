@@ -36,16 +36,15 @@ public class OrderService {
             customer = customerRepository.save(customer);
         }
 
-        Store store = storeRepository.findById(placeOrderRequest.getStoreId().longValue());
-        if (store == null) {
-            throw new RuntimeException("no store");
-        }
+        Store store = storeRepository.findById(placeOrderRequest.getStoreId())
+                .orElseThrow(() -> new RuntimeException("Store not found"));
+
 
         Double totalPrice = placeOrderRequest.getTotalPrice();
         LocalDateTime date = LocalDateTime.now();
 
         OrderDetails orderDetails = new OrderDetails(customer, store, totalPrice, date);
-        List<OrderItem> orderItems = new ArrayList<OrderItem>();
+        List<OrderItem> orderItems = new ArrayList<>();
 
         for (PurchaseProductDTO purchaseProduct : placeOrderRequest.getPurchaseProduct()) {
             Inventory inventory = inventoryRepository.findByProductIdandStoreId(
@@ -54,18 +53,18 @@ public class OrderService {
             inventory.setStockLevel(inventory.getStockLevel() - purchaseProduct.getQuantity());
             inventoryRepository.save(inventory);
 
-            Product product = productRepository.findById(purchaseProduct.getId().longValue());
+            Product product = productRepository.findById(purchaseProduct.getId());
             OrderItem orderItem = new OrderItem(
                     orderDetails,
                     product,
                     purchaseProduct.getQuantity(),
-                    purchaseProduct.getPrice());
+                    purchaseProduct.getPrice()*purchaseProduct.getQuantity());
             orderItem = orderItemRepository.save(orderItem);
             orderItems.add(orderItem);
         }
 
         orderDetails.setOrderItems(orderItems);
-        orderDetailsRepository.save(orderDetails);
+        orderDetails = orderDetailsRepository.save(orderDetails);
     }
 
 }

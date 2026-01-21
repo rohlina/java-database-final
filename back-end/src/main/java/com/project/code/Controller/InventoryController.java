@@ -26,37 +26,63 @@ public class InventoryController {
     private ServiceClass serviceClass = new ServiceClass(inventoryRepository,productRepository);
 
     @PutMapping("/updateInventory")
-    public Map<String, String> updateInventory (CombinedRequest combinedRequest) {
-        if(!serviceClass.validateProductId(combinedRequest.getProduct().getId())) {
-           throw new DataIntegrityViolationException("No data available");
-        }
-        productRepository.save(combinedRequest.getProduct());
+    public Map<String, String> updateInventory (@RequestBody CombinedRequest combinedRequest) {
+        Product product = combinedRequest.getProduct();
+        Inventory inventory =combinedRequest.getInventory();
 
         Map<String, String> message = new HashMap<String, String>();
-        if (serviceClass.validateInventory(combinedRequest.getInventory())) {
-            inventoryRepository.save(combinedRequest.getInventory());
-            message.put("message", "Product updated successfully");
-        } else {
-            message.put("message", "No data available");
-        }
 
+        if (!serviceClass.validateProductId(product.getId())) {
+            message.put("message", "Id " + product.getId() + " not found in the database");
+            return message;
+        }
+        productRepository.save(product);
+        message.put("message", "Product updated successfully id: " + product.getId());
+        if (inventory != null) {
+            try {
+                Inventory result = serviceClass.getInventoryId(inventory);
+                if (result != null) {
+                    inventory.setId(result.getId());
+                    inventoryRepository.save(inventory);
+                } else {
+                    message.put("message", "no data available");
+                    return message;
+                }
+            } catch (DataIntegrityViolationException e) {
+                message.put("message", "Error: " + e.getMessage());
+                return message;
+            } catch (Exception e) {
+                message.put("message", "Error: " + e.getMessage());
+                return message;
+            }
+        }
         return message;
     }
 
     @PostMapping("/saveInventory")
-    public Map<String, String> saveInventory (Inventory inventory) {
+    public Map<String, String> saveInventory (@RequestBody Inventory inventory) {
         Map<String, String> message = new HashMap<String, String>();
-        if(!serviceClass.validateInventory(inventory)) {
-            message.put("message", "Inventory is already exist");
-        } else {
-            inventoryRepository.save(inventory);
-            message.put("message", "Inventory saved successfully");
+        try {
+            if (!serviceClass.validateInventory(inventory)) {
+                message.put("message", "Inventory is already exist");
+                return message;
+            } else {
+                inventoryRepository.save(inventory);
+            }
+        } catch (DataIntegrityViolationException e) {
+            message.put("message", "Error: " + e.getMessage());
+            return message;
+        } catch (Exception e) {
+            message.put("message", "Error: " + e);
+            return message;
         }
+
+        message.put("message", "Inventory saved successfully");
         return message;
     }
 
     @GetMapping("/{storeid}")
-    public Map<String, Object> getAllProducts (@PathVariable long storeId) {
+    public Map<String, Object> getAllProducts (@PathVariable Long storeId) {
         Map<String, Object> result = new HashMap<String, Object>();
         List<Product> products = productRepository.findProductsByStoreId(storeId);
         result.put("products", products);
@@ -65,7 +91,7 @@ public class InventoryController {
 
 
     @GetMapping("filter/{category}/{name}/{storeid}")
-    public Map<String, Object> getProductName (@PathVariable String category, @PathVariable String name, @PathVariable long storeId) {
+    public Map<String, Object> getProductName (@PathVariable String category, @PathVariable String name, @PathVariable Long storeId) {
         Map<String, Object> result = new HashMap<String, Object>();
         List<Product> products;
 
@@ -82,7 +108,7 @@ public class InventoryController {
     }
 
     @GetMapping("search/{name}/{storeId}")
-    public Map<String, Object> searchProduct (@PathVariable String name, @PathVariable long storeId) {
+    public Map<String, Object> searchProduct (@PathVariable String name, @PathVariable Long storeId) {
         Map<String, Object> result = new HashMap<String, Object>();
         List<Product> products = productRepository.findByNameLike(storeId, name);
         result.put("product", products);
@@ -90,20 +116,20 @@ public class InventoryController {
     }
 
     @DeleteMapping("/{id}")
-    public Map<String, String> removeProduct (@PathVariable long id) {
+    public Map<String, String> removeProduct (@PathVariable Long id) {
         Map<String, String> message = new HashMap<String, String>();
         if(serviceClass.validateProductId(id)) {
-            message.put("message", "Product was not found in the Database");
+            message.put("message", "Product was not found in the Database id: " + id);
         } else {
             inventoryRepository.deleteByProductId(id);
-            message.put("message", "The product has been removed");
+            message.put("message", "The product has been removed id: " + id);
         }
         return message;
     }
 
 
     @GetMapping("validate/{quantity}/{storeId}/{productId}")
-    public boolean validateQuantity (@PathVariable long quantity, @PathVariable long storeId, @PathVariable long productId) {
+    public boolean validateQuantity (@PathVariable Long quantity, @PathVariable Long storeId, @PathVariable Long productId) {
 
         Inventory inventory = inventoryRepository.findByProductIdandStoreId(productId, storeId);
 
