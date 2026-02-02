@@ -14,7 +14,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, Object> handleJsonParseException () {
+    public Map<String, Object> handleJsonParseException (HttpMessageNotReadableException ex) {
         Map<String, Object> message = new HashMap<>();
         message.put("message", "Invalid input: The data provided is not valid.");
         return message;    }
