@@ -3,6 +3,7 @@ package com.project.code.Controller;
 import com.project.code.Model.CombinedRequest;
 import com.project.code.Model.Product;
 import com.project.code.Repo.InventoryRepository;
+import com.project.code.Repo.OrderItemRepository;
 import com.project.code.Repo.ProductRepository;
 import com.project.code.Service.ServiceClass;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,21 +23,23 @@ public class ProductController {
     @Autowired
     private InventoryRepository inventoryRepository;
     @Autowired
-    private ServiceClass serviceClass = new ServiceClass(inventoryRepository,productRepository);
+    private OrderItemRepository orderItemRepository;
+    @Autowired
+    private ServiceClass serviceClass; //= new ServiceClass(inventoryRepository,productRepository);
 
     @PostMapping
-    public Map<String, String> addProduct (CombinedRequest combinedRequest) {
+    public Map<String, String> addProduct (@RequestBody Product product) {
         Map<String, String> message = new HashMap<String, String>();
 
-        if(serviceClass.validateProduct(combinedRequest.getProduct())) {
-            message.put("message", "No data available");
+        if(!serviceClass.validateProduct(product)) {
+            message.put("message", "The product is already in the database");
         }
 
         try {
-            productRepository.save(combinedRequest.getProduct());
-            message.put("message", "Product updated successfully");
+            productRepository.save(product);
+            message.put("message", "Product added successfully");
         } catch (DataIntegrityViolationException e) {
-            message.put("message", e.getMessage());
+            message.put("message", "SKU must be unique");
         }
 
         return message;
@@ -44,34 +47,37 @@ public class ProductController {
 
     @GetMapping("/product/{id}")
     public Map<String, Object> getProductbyId (@PathVariable long id) {
-        Map<String, Object> result = new HashMap<String, Object>();
+        Map<String, Object> result = new HashMap<>();
         Product products = productRepository.findById(id);
         result.put("products", products);
         return result;
     }
 
     @PutMapping("/updateProduct")
-    public Map<String, String> updateProduct (CombinedRequest combinedRequest) {
+    public Map<String, String> updateProduct (@RequestBody Product product) {
         Map<String, String> message = new HashMap<String, String>();
-        if(!serviceClass.validateProductId(combinedRequest.getProduct().getId())) {
+        if(serviceClass.validateProductId(product.getId())) {
             message.put("message", "No data available");
         }
         try {
-            productRepository.save(combinedRequest.getProduct());
+            productRepository.save(product);
             message.put("message", "Product updated successfully");
-        } catch (Exception e) {
+        } catch (Error e) {
             message.put("message", e.getMessage());
         }
 
         return message;
     }
+
+
     @GetMapping("/category/{name}/{category}")
-    public Map<String, Object> filterbyCategoryProduct (@PathVariable String category, @PathVariable String name) {
-        Map<String, Object> result = new HashMap<String, Object>();
+    public Map<String, Object> filterbyCategoryProduct (@PathVariable String name, @PathVariable String category) {
+        Map<String, Object> result = new HashMap<>();
 
         List<Product> products;
         if (category == null && name == null) {
             products = productRepository.findAll();
+            
         } else if (name == null)  {
             products = productRepository.findByCategory(category);
         } else if (category == null) {
@@ -109,6 +115,7 @@ public class ProductController {
             message.put("message", "Product was not found in the Database");
         } else {
             inventoryRepository.deleteByProductId(id);
+
             productRepository.deleteById(id);
             message.put("message", "The product has been removed");
         }

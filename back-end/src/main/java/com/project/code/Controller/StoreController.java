@@ -20,11 +20,11 @@ public class StoreController {
     OrderService orderService;
 
     @PostMapping
-    public Map<String, String> addStore (CombinedRequest combinedRequest) {
+    public Map<String, String> addStore (@RequestBody Store store) {
         Map<String, String> message = new HashMap<String, String>();
         try{
-            storeRepository.save(combinedRequest.getInventory().getStore());
-            message.put("message", "Store added successfully");
+            Store savedStore = storeRepository.save(store);
+            message.put("message", "Store added successfully id: " + savedStore.getId());
         } catch (DataIntegrityViolationException e) {
             message.put("message", e.getMessage());
         }
@@ -41,7 +41,7 @@ public class StoreController {
     }
 
     @PostMapping("/placeOrder")
-    public Map<String, String> placeOrder (PlaceOrderRequestDTO placeOrderRequestDTO) {
+    public Map<String, String> placeOrder (@RequestBody  PlaceOrderRequestDTO placeOrderRequestDTO) {
 
         Map<String, String> message = new HashMap<String, String>();
         try{

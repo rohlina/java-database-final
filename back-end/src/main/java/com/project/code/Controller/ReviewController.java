@@ -30,19 +30,33 @@ public class ReviewController {
         Map<String, Object> result = new HashMap<String, Object>();
 
         List<Review> allReviews = reviewRepository.findByStoreIdAndProductId(storeId, productId);
-        List<List<String>> reviews = new ArrayList<>();
+        List<Map<String, Object>> reviews = new ArrayList<>();
         for (Review review : allReviews) {
-            String name = customerRepository.findById(review.getCustomerId().longValue()).getName();
-            List<String> r = new ArrayList<>();
-            r.add(review.getComment());
-            r.add(review.getRating().toString());
-            r.add(name);
+            Customer customer = customerRepository.findById(review.getCustomerId().longValue());
+            String name;
+            if (customer != null) {
+                name = customer.getName();
+            } else {
+                name = "Unknown";
+            }
 
-            reviews.add(r);
+            Map<String, Object> reviewMap = new HashMap<>();
+            reviewMap.put("review", review.getComment());
+            reviewMap.put("rating", review.getRating());
+            reviewMap.put("customerName",name);
+
+            reviews.add(reviewMap);
         }
 
         result.put("reviews", reviews);
         return result;
     }
 
+    @GetMapping
+    public Map<String,Object> getAllReviews()
+    {
+        Map<String,Object> map=new HashMap<>();
+        map.put("reviews",reviewRepository.findAll());
+        return map;
+    }
 }

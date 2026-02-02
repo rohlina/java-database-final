@@ -23,7 +23,7 @@ public class InventoryController {
     @Autowired
     private InventoryRepository inventoryRepository;
     @Autowired
-    private ServiceClass serviceClass = new ServiceClass(inventoryRepository,productRepository);
+    private ServiceClass serviceClass; //= new ServiceClass(inventoryRepository,productRepository);
 
     @PutMapping("/updateInventory")
     public Map<String, String> updateInventory (@RequestBody CombinedRequest combinedRequest) {
